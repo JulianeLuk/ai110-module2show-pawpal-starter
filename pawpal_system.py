@@ -10,6 +10,10 @@ class Task:
 	title: str
 	duration_minutes: int
 	priority: str
+	pet_name: str = ""
+	frequency: str = "daily"
+	preferred_time: str = "any"
+	completed: bool = False
 	notes: str = ""
 
 	def is_valid_priority(self) -> bool:
@@ -18,18 +22,29 @@ class Task:
 	def is_time_fit(self, available_minutes: int) -> bool:
 		raise NotImplementedError
 
+	def mark_completed(self) -> None:
+		raise NotImplementedError
+
 
 @dataclass
 class Pet:
 	name: str
 	species: str
 	age: int
+	owner_name: str = ""
 	tasks: List[Task] = field(default_factory=list)
 
 	def add_task(self, task: Task) -> None:
 		raise NotImplementedError
 
-	def edit_task(self, task_id: str, duration_minutes: int, priority: str) -> bool:
+	def edit_task(
+		self,
+		task_id: str,
+		duration_minutes: int | None = None,
+		priority: str | None = None,
+		title: str | None = None,
+		notes: str | None = None,
+	) -> bool:
 		raise NotImplementedError
 
 	def remove_task(self, task_id: str) -> bool:
@@ -64,12 +79,32 @@ class Owner:
 	def get_all_tasks(self) -> List[Task]:
 		raise NotImplementedError
 
+	def add_task_to_pet(self, pet_name: str, task: Task) -> bool:
+		raise NotImplementedError
+
+	def edit_pet_task(
+		self,
+		pet_name: str,
+		task_id: str,
+		duration_minutes: int | None = None,
+		priority: str | None = None,
+		title: str | None = None,
+		notes: str | None = None,
+	) -> bool:
+		raise NotImplementedError
+
 
 class Scheduler:
-	def __init__(self, available_minutes: int) -> None:
+	def __init__(self, available_minutes: int | None = None) -> None:
 		self.available_minutes = available_minutes
+		self.last_selected: List[Task] = []
+		self.last_skipped: List[Task] = []
+		self.last_explanation: str = ""
 
 	def generate_daily_plan(self, owner: Owner) -> List[Task]:
+		raise NotImplementedError
+
+	def resolve_time_limit(self, owner: Owner) -> int:
 		raise NotImplementedError
 
 	def rank_tasks(self, tasks: List[Task]) -> List[Task]:

@@ -5,13 +5,11 @@
 **a. Initial design**
 
 - Briefly describe your initial UML design.
-The purpose of the Pawpal application is help with pet care managemnt. This application should assit the user with scheduling all necessary care items for the pets including meds, gromming, feeding, and more. 
-The app should produce a daily plan for the user that clearly lists out what needs to be done that day with clear priorities. The user should be able to add tasks or ajeust them. Overall the application should make pet management easier.
+The purpose of the Pawpal application is to help with pet care management. This application assists the user with scheduling all necessary care items for their pets, including medications, grooming, feeding, and more. The app should produce a daily plan that clearly lists what needs to be done that day with priorities, while also allowing the user to add, edit, or remove tasks. Overall, the application is designed to make managing multiple pets easier and less stressful by keeping everything organized in one place.
 
 - What classes did you include, and what responsibilities did you assign to each?
 
-The UML diagram will include four different classes: Owner, Pet, Task, and Schedule. Each class will define the atributes and methods needed. The owner should be able to add new pets, edit pet information, add tasks, etc. one owner can have multiple pets. The task should be able to get what tasks are needed for each pet. The scheduler will generate a daily schedule of all the tasks that need to be completed that day along with priorities. 
-
+The UML diagram includes four main classes: Owner, Pet, Task, and Scheduler. The Owner class manages the user’s information, preferences, and the list of pets, and it provides methods to add or remove pets as well as retrieve all tasks across pets. The Pet class stores information about each pet, including their name, species, age, and list of tasks, and it handles adding, editing, removing, and retrieving tasks. The Task class represents an individual task with attributes like title, duration, priority, and notes, and it includes methods to validate priority and check if the task fits within available time. The Scheduler class is responsible for generating a daily plan based on the owner’s available time, ranking tasks by priority, filtering tasks that fit within the time limit, and explaining the daily plan including tasks that were skipped.
 
 **b. Design changes**
 
