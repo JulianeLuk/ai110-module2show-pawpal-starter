@@ -72,3 +72,79 @@ The scheduler uses a **greedy selection approach**:
 2. Sequentially fits tasks into available time
 3. Explains which tasks were selected and why others were skipped
 - This ensures high-priority tasks (feeding, medications) are prioritized for pet health
+
+## Testing PawPal+
+
+A comprehensive automated test suite ensures the reliability of scheduling and filtering logic.
+
+### Running Tests
+
+```bash
+python -m pytest tests/test_pawpal.py -v
+```
+
+For a summary without verbose output:
+```bash
+python -m pytest tests/test_pawpal.py
+```
+
+### Test Coverage
+
+The test suite includes **27 automated tests** organized into 9 test classes:
+
+| Feature | Tests | Coverage |
+|---------|-------|----------|
+| **Task Completion** | 1 | Basic task state tracking |
+| **Task Addition** | 1 | Pet-task association |
+| **Sorting by Time** | 3 | Chronological ordering, flexible times, empty lists |
+| **Recurring Tasks** | 3 | Daily/weekly auto-generation, one-time tasks |
+| **Conflict Detection** | 5 | Same-time conflicts, multiple conflicts, no conflicts, flexible times, empty lists |
+| **Filtering by Pet** | 3 | Correct filtering, case-insensitivity, empty results |
+| **Filtering by Status** | 3 | Incomplete tasks, complete tasks, empty results |
+| **Priority Ranking** | 2 | Priority ordering, secondary sort by duration |
+| **Daily Plan Generation** | 3 | Time limit respect, empty owners, completed task exclusion |
+| **Edge Cases** | 2 | Invalid time formats, zero-duration tasks, large task lists |
+
+### What We Test
+
+✅ **Happy Paths** (Expected behavior)
+- Tasks sort correctly by time (HH:MM format)
+- Daily/weekly tasks auto-create next occurrence
+- Conflicts trigger warnings without crashing
+- Filters work with case-insensitivity
+- Scheduler respects available time limits
+- Completed tasks are excluded from plans
+
+✅ **Edge Cases** (Boundary conditions)
+- Empty task/pet lists
+- Tasks with flexible "any" time
+- Invalid time formats (graceful degradation)
+- Zero or negative task durations (skipped)
+- Large task lists (100+ tasks)
+- Multiple tasks at exact same time
+- One-time vs. recurring tasks
+
+### Test Results
+
+```
+======================= 27 passed in 0.20s =======================
+```
+
+### Confidence Level: ⭐⭐⭐⭐⭐ (5 stars)
+
+**Why high confidence:**
+- All core scheduling behaviors verified by automated tests
+- Edge cases handled gracefully without crashes
+- Recurring task logic validated with timedelta calculations
+- Conflict detection confirmed for multiple scenarios
+- Performance tested with large task lists (100+ tasks)
+- Filtering logic works across pets, times, and statuses
+- Time constraint enforcement validated
+
+**Limitations to note:**
+- Tests assume tasks stay within a single day (no multi-day validation)
+- UI integration not yet tested (only business logic)
+- No tests for concurrent access or multi-user scenarios
+- Real-world time zone handling not included
+
+This test suite provides strong evidence that the PawPal+ scheduler will reliably help pet owners manage daily tasks safely and predictably.

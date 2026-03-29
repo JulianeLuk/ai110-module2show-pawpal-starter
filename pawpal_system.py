@@ -287,7 +287,23 @@ class Scheduler:
 			List[Task]: Tasks sorted chronologically by preferred_time (earliest first).
 		
 		Example:
-			tasks = [Task(.to show only those assigned to a specific pet.
+			tasks = [Task(..., preferred_time="14:00"), Task(..., preferred_time="08:00")]
+			sorted = scheduler.sort_by_time(tasks)
+			# Result: 08:00 task first, then 14:00 task
+		"""
+		def parse_time(task: Task) -> str:
+			if task.preferred_time == "any" or not task.preferred_time:
+				return "23:59"
+			try:
+				datetime.strptime(task.preferred_time, "%H:%M")
+				return task.preferred_time
+			except ValueError:
+				return "23:59"
+		
+		return sorted(tasks, key=parse_time)
+
+	def filter_by_pet(self, tasks: List[Task], pet_name: str) -> List[Task]:
+		"""Filter tasks to show only those assigned to a specific pet.
 		
 		Performs case-insensitive filtering of tasks by pet_name. Useful for viewing
 		all tasks for a single pet or generating pet-specific schedules.
@@ -303,15 +319,32 @@ class Scheduler:
 			all_tasks = [Task(..., pet_name="Mochi"), Task(..., pet_name="Luna")]
 			mochi_only = scheduler.filter_by_pet(all_tasks, "Mochi")
 			# Result: Only the Mochi task is returned
-		d_time="14:00"), Task(..., preferred_time="08:00")]
-			sorted = scheduler.sort_by_time(tasks)
-			# Result: 08:00 task first, then 14:00 task
 		"""
-		def parse_time(tasktheir completion status.
+		return [task for task in tasks if task.pet_name.lower() == pet_name.lower()]
+
+	def filter_by_status(self, tasks: List[Task], completed: bool = False) -> List[Task]:
+		"""Filter tasks by their completion status.
 		
 		Separates tasks into completed or incomplete lists. Useful for displaying
 		today's remaining work or reviewing completed tasks.
-		scheduling conflicts where multiple tasks occur at the same time.
+		
+		Args:
+			tasks: List of Task objects to filter.
+			completed: If True, returns only completed tasks; if False (default), 
+			          returns only incomplete tasks.
+		
+		Returns:
+			List[Task]: Tasks matching the specified completion status.
+		
+		Example:
+			all_tasks = [Task(..., completed=True), Task(..., completed=False)]
+			incomplete = scheduler.filter_by_status(all_tasks, completed=False)
+			# Result: Only incomplete (remaining) tasks are returned
+		"""
+		return [task for task in tasks if task.completed == completed]
+
+	def detect_conflicts(self, tasks: List[Task]) -> List[str]:
+		"""Detect scheduling conflicts where multiple tasks occur at the same time.
 		
 		Identifies when two or more tasks share the same preferred_time (HH:MM).
 		Returns warning messages instead of raising exceptions, allowing graceful
@@ -332,40 +365,7 @@ class Scheduler:
 			         Task(..., pet_name="Max", preferred_time="10:00")]
 			warnings = scheduler.detect_conflicts(tasks)
 			# Result: ["⚠️  CONFLICT at 10:00: Dog Training (Buddy), Cat Play (Max)"]
-		
-		Args:
-			tasks: List of Task objects to filter.
-			completed: If True, returns only completed tasks; if False (default), 
-			          returns only incomplete tasks.
-		
-		Returns:
-			List[Task]: Tasks matching the specified completion status.
-		
-		Example:
-			all_tasks = [Task(..., completed=True), Task(..., completed=False)]
-			incomplete = scheduler.filter_by_status(all_tasks, completed=False)
-			# Result: Only incomplete (remaining) tasks are returned
-		
-			if task.preferred_time == "any" or not task.preferred_time:
-				return "23:59"  # "any" times go to end
-			try:
-				datetime.strptime(task.preferred_time, "%H:%M")
-				return task.preferred_time
-			except ValueError:
-				return "23:59"
-		
-		return sorted(tasks, key=parse_time)
-
-	def filter_by_pet(self, tasks: List[Task], pet_name: str) -> List[Task]:
-		"""Filter tasks by pet name."""
-		return [task for task in tasks if task.pet_name.lower() == pet_name.lower()]
-
-	def filter_by_status(self, tasks: List[Task], completed: bool = False) -> List[Task]:
-		"""Filter tasks by completion status."""
-		return [task for task in tasks if task.completed == completed]
-
-	def detect_conflicts(self, tasks: List[Task]) -> List[str]:
-		"""Detect if multiple tasks are scheduled at the same time. Returns list of warning messages."""
+		"""
 		warnings: List[str] = []
 		time_groups: Dict[str, List[Task]] = {}
 		
