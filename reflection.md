@@ -5,7 +5,13 @@
 **a. Initial design**
 
 - Briefly describe your initial UML design.
+The purpose of the Pawpal application is help with pet care managemnt. This application should assit the user with scheduling all necessary care items for the pets including meds, gromming, feeding, and more. 
+The app should produce a daily plan for the user that clearly lists out what needs to be done that day with clear priorities. The user should be able to add tasks or ajeust them. Overall the application should make pet management easier.
+
 - What classes did you include, and what responsibilities did you assign to each?
+
+The UML diagram will include four different classes: Owner, Pet, Task, and Schedule. Each class will define the atributes and methods needed. The owner should be able to add new pets, edit pet information, add tasks, etc. one owner can have multiple pets. The task should be able to get what tasks are needed for each pet. The scheduler will generate a daily schedule of all the tasks that need to be completed that day along with priorities. 
+
 
 **b. Design changes**
 
