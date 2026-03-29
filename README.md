@@ -41,37 +41,57 @@ pip install -r requirements.txt
 5. Add tests to verify key behaviors.
 6. Connect your logic to the Streamlit UI in `app.py`.
 7. Refine UML so it matches what you actually built.
-## Smarter Scheduling Features
+## 🐾 Features
 
-Beyond basic task management, PawPal+ now includes intelligent scheduling algorithms:
+PawPal+ includes intelligent scheduling algorithms and comprehensive pet care management:
 
-### Sorting by Time
-- **`sort_by_time()`**: Organize tasks chronologically by preferred time (HH:MM format)
-- Places flexible "any time" tasks at the end for visibility
-- Useful for viewing your day's schedule in order
+### Core Scheduling Algorithms
 
-### Filtering & Querying
-- **`filter_by_pet()`**: View all tasks for a specific pet
-- **`filter_by_status()`**: Separate incomplete tasks from completed ones
-- Enables quick lookups without traversing entire task lists
+- **Daily Plan Generation** (`generate_daily_plan`): Orchestrates the entire scheduling process, filters out completed tasks, ranks by priority, and greedily selects tasks that fit within available time. Returns optimized daily schedule with explanation.
 
-### Recurring Task Automation
-- **`mark_completed()`**: When you complete a daily/weekly task, a new instance automatically generates for the next occurrence
-- Uses Python's `timedelta` to calculate: Daily tasks → tomorrow, Weekly tasks → next week
-- Eliminates manual re-creation of repeating tasks
+- **Priority-Based Task Ranking** (`rank_tasks`): Sorts tasks by priority level (high → medium → low), with secondary sort by duration (shorter tasks first when priorities equal). Ensures high-priority care (feeding, medications) takes precedence.
 
-### Conflict Detection
-- **`detect_conflicts()`**: Warns when multiple tasks are scheduled at the same time
-- Returns friendly warning messages instead of crashing
-- Example: "⚠️ CONFLICT at 10:00: Dog Training (Buddy), Cat Play (Max)"
-- Helps prevent double-booking across multiple pets
+- **Time-Constrained Greedy Selection** (`filter_by_time`): Sequentially fits ranked tasks into available minutes, skips tasks that exceed time limit, and respects owner's daily time constraint.
 
-### Scheduling Algorithm
-The scheduler uses a **greedy selection approach**:
-1. Ranks all tasks by priority (high → medium → low), then by duration
-2. Sequentially fits tasks into available time
-3. Explains which tasks were selected and why others were skipped
-- This ensures high-priority tasks (feeding, medications) are prioritized for pet health
+### Task Analysis & Querying
+
+- **Chronological Time Sorting** (`sort_by_time`): Organizes tasks by preferred time in HH:MM format (earliest → latest). Treats invalid times as end-of-day (23:59) and places flexible "any time" tasks at the end for visibility.
+
+- **Pet-Specific Filtering** (`filter_by_pet`): Returns all tasks for a specific pet with case-insensitive pet name matching. Enables quick workload analysis per pet.
+
+- **Status-Based Filtering** (`filter_by_status`): Separates incomplete tasks from completed ones. Supports "remaining work" vs. "completed review" views.
+
+### Conflict & Validation
+
+- **Scheduling Conflict Detection** (`detect_conflicts`): Identifies multiple tasks scheduled at identical times and generates warning messages (e.g., " CONFLICT at 10:00: Dog Training (Buddy), Cat Play (Max)"). Ignores flexible "any time" tasks and returns list of warnings for graceful handling.
+
+- **Recurring Task Automation** (`mark_completed`): Marks a task as completed and auto-generates next occurrence for daily tasks (tomorrow, +1 day), weekly tasks (next week, +7 days), or returns None for one-time tasks. Uses Python's `timedelta` for date calculations.
+
+### Explanation & Transparency
+
+- **Plan Rationale Explanation** (`explain_plan`): Generates human-readable summary of selected tasks, lists skipped tasks and reason (time limit exceeded), shows total time allocation, and builds transparency into scheduling decisions.
+
+### UI/UX Features
+
+- **Professional Task Display**: Conflict warnings with color-coded alerts (`st.warning`), tabular schedule view with pandas DataFrame, and task metrics (Tasks Today, Total Time, Time Left).
+
+- **Multi-Mode Task Analysis**: View all tasks sorted by time, filter tasks by specific pet, or split tasks by completion status (Pending vs. Completed).
+
+**Algorithm Complexity**: Sorting O(n log n), Filtering O(n), Greedy selection O(n), Conflict detection O(n), Overall plan generation O(n log n)
+
+## 📸 Demo
+
+### Add Pet Screen
+![Add Pet Screen](addPet.jpg)
+
+### Add Task Screen
+![Add Task Screen](addTask.jpg)
+
+### Conflict Detection Screen
+![Conflict Detection Screen](Conflict%20Detection.jpg)
+
+### Final UML Diagram
+![Final UML Diagram](uml_final.jpg)
 
 ## Testing PawPal+
 
@@ -83,10 +103,7 @@ A comprehensive automated test suite ensures the reliability of scheduling and f
 python -m pytest tests/test_pawpal.py -v
 ```
 
-For a summary without verbose output:
-```bash
-python -m pytest tests/test_pawpal.py
-```
+
 
 ### Test Coverage
 
@@ -107,7 +124,7 @@ The test suite includes **27 automated tests** organized into 9 test classes:
 
 ### What We Test
 
-✅ **Happy Paths** (Expected behavior)
+ **Expected behavior**
 - Tasks sort correctly by time (HH:MM format)
 - Daily/weekly tasks auto-create next occurrence
 - Conflicts trigger warnings without crashing
@@ -130,7 +147,7 @@ The test suite includes **27 automated tests** organized into 9 test classes:
 ======================= 27 passed in 0.20s =======================
 ```
 
-### Confidence Level: ⭐⭐⭐⭐⭐ (5 stars)
+### Confidence Level: (4 stars)
 
 **Why high confidence:**
 - All core scheduling behaviors verified by automated tests
@@ -143,8 +160,5 @@ The test suite includes **27 automated tests** organized into 9 test classes:
 
 **Limitations to note:**
 - Tests assume tasks stay within a single day (no multi-day validation)
-- UI integration not yet tested (only business logic)
 - No tests for concurrent access or multi-user scenarios
-- Real-world time zone handling not included
 
-This test suite provides strong evidence that the PawPal+ scheduler will reliably help pet owners manage daily tasks safely and predictably.

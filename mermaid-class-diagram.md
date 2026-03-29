@@ -9,7 +9,7 @@ classDiagram
         +update_preferences(preferences: Map) void
         +get_all_tasks() List~Task~
         +add_task_to_pet(pet_name: String, task: Task) bool
-        +edit_pet_task(pet_name: String, task_id: String, duration_minutes: int?, priority: String?, title: String?, notes: String?) bool
+        +edit_pet_task(pet_name: String, task_id: String, ...) bool
     }
 
     class Pet {
@@ -19,7 +19,7 @@ classDiagram
         +String owner_name
         +List~Task~ tasks
         +add_task(task: Task) void
-        +edit_task(task_id: String, duration_minutes: int?, priority: String?, title: String?, notes: String?) bool
+        +edit_task(task_id: String, ...) bool
         +remove_task(task_id: String) bool
         +get_tasks() List~Task~
     }
@@ -36,7 +36,7 @@ classDiagram
         +String notes
         +is_valid_priority() bool
         +is_time_fit(available_minutes: int) bool
-        +mark_completed() void
+        +mark_completed() Task | None
     }
 
     class Scheduler {
@@ -49,10 +49,14 @@ classDiagram
         +rank_tasks(tasks: List~Task~) List~Task~
         +filter_by_time(tasks: List~Task~, limit_minutes: int) List~Task~
         +explain_plan(selected: List~Task~, skipped: List~Task~) String
+        +sort_by_time(tasks: List~Task~) List~Task~
+        +filter_by_pet(tasks: List~Task~, pet_name: String) List~Task~
+        +filter_by_status(tasks: List~Task~, completed: bool) List~Task~
+        +detect_conflicts(tasks: List~Task~) List~String~
     }
 
     Owner "1" o-- "0..*" Pet : owns
     Pet "1" o-- "0..*" Task : has
     Task "0..*" --> "1" Pet : belongs to
     Scheduler ..> Owner : reads owner info
-    Scheduler ..> Task : schedules
+    Scheduler ..> Task : schedules, analyzes & filters

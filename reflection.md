@@ -39,12 +39,12 @@ One tradeoff my scheduler makes is that it uses a greedy approach, picking the h
 
 - How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
 - What kinds of prompts or questions were most helpful?
-
+I used AI tools mostly at the beginning for planning and brainstorming, like figuring out the best way to structure my classes and the scheduler logic. I also used it to explore different approaches to improving the daily plan generation and making the scheduling smarter. The prompts that worked best were ones where I asked for examples or explanations, like “How can I handle task priority and time constraints in a scheduler?” or “What’s a good way to track recurring tasks and completion?” These helped me think through edge cases and refine my Python implementation.
 **b. Judgment and verification**
 
 - Describe one moment where you did not accept an AI suggestion as-is.
 - How did you evaluate or verify what the AI suggested?
-
+One time the AI suggested a way to automatically schedule all tasks without checking the owner’s available time first. I didn’t accept it as-is because that would have broken the time constraint. I evaluated the suggestion by comparing it to my project requirements and tested it with a few sample owners and pets to see if the daily plan would fit realistically. After that, I adjusted the logic so it respected time limits, task completion, and priority before scheduling.
 ---
 
 ## 4. Testing and Verification
@@ -53,12 +53,12 @@ One tradeoff my scheduler makes is that it uses a greedy approach, picking the h
 
 - What behaviors did you test?
 - Why were these tests important?
-
+I tested core scheduling behaviors like generating a daily plan, ranking tasks by priority, filtering by pet and completion status, handling preferred times, and marking recurring tasks completed. I also tested conflict detection to make sure overlapping tasks were flagged correctly. These tests were important because they ensure the app produces practical, accurate plans and that no tasks are accidentally skipped or mismanaged.
 **b. Confidence**
 
 - How confident are you that your scheduler works correctly?
 - What edge cases would you test next if you had more time?
-
+I feel pretty confident that the scheduler works correctly because all the automated tests passed, including edge cases like empty task lists, invalid times, and multiple tasks scheduled at the same time. If I had more time, I would test even larger task lists, multi-day scheduling, and more complex recurring patterns to see how the app handles them.
 ---
 
 ## 5. Reflection
@@ -66,11 +66,12 @@ One tradeoff my scheduler makes is that it uses a greedy approach, picking the h
 **a. What went well**
 
 - What part of this project are you most satisfied with?
-
+I’m most satisfied with how the scheduler handles priorities, time limits, and task completion. The app now produces clear daily plans that are easy to understand, and the explanation feature helps the owner see why certain tasks were selected or skipped.
 **b. What you would improve**
 
 - If you had another iteration, what would you improve or redesign?
-
+If I had another iteration, I would improve the UI to make task management even more interactive, like drag-and-drop reordering, and I’d redesign the Scheduler to handle multi-day planning and better optimize for longer high-priority tasks.
 **c. Key takeaway**
 
 - What is one important thing you learned about designing systems or working with AI on this project?
+One important thing I learned is how powerful AI can be if used correctly. Being specific with my prompts and guiding it with clear questions made it much more useful for planning, debugging, and improving my scheduler.

@@ -133,33 +133,202 @@ if st.button("Generate schedule"):
 		st.warning("Add pets and tasks first to generate a schedule.")
 	else:
 		plan = scheduler.generate_daily_plan(owner)
+		all_tasks = owner.get_all_tasks()
 
 		st.success("✓ Schedule generated!")
 
-		st.write("### Today's Schedule")
+		# ===== CONFLICT DETECTION =====
+		conflicts = scheduler.detect_conflicts(all_tasks)
+		if conflicts:
+			st.markdown("### ⚠️ Scheduling Conflicts Detected")
+			for conflict_msg in conflicts:
+				st.warning(conflict_msg)
+			st.markdown(
+				"💡 **Tip:** Consider rescheduling one of the conflicting tasks to avoid double-booking your pets."
+			)
+
+		# ===== TODAY'S SORTED SCHEDULE =====
+		st.markdown("### 📅 Today's Schedule (By Time)")
 		if plan:
 			total_minutes = sum(task.duration_minutes for task in plan)
-			st.write(f"**{len(plan)} task(s), {total_minutes} minutes total**")
-
+			
+			# Display as a professional table
+			schedule_data = []
 			for idx, task in enumerate(plan, start=1):
-				col1, col2, col3, col4 = st.columns(4)
-				with col1:
-					st.write(f"**{idx}. {task.title}**")
-				with col2:
-					st.write(f"{task.duration_minutes} min")
-				with col3:
-					st.write(f"Priority: {task.priority}")
-				with col4:
-					st.write(f"Time: {task.preferred_time}")
-				st.write(f"Pet: {task.pet_name}")
-				st.divider()
+				schedule_data.append({
+					"#": idx,
+					"Task": task.title,
+					"Pet": task.pet_name,
+					"Time": task.preferred_time,
+					"Duration": f"{task.duration_minutes} min",
+					"Priority": task.priority.upper(),
+				})
+			
+			st.dataframe(
+				import_pandas_and_create_df(schedule_data),
+				use_container_width=True,
+				hide_index=True,
+			)
+			
+			col1, col2, col3 = st.columns(3)
+			with col1:
+				st.metric("Tasks Today", len(plan))
+			with col2:
+				st.metric("Total Time", f"{total_minutes} min")
+			with col3:
+				time_left = owner.time_available_minutes - total_minutes
+				st.metric("Time Left", f"{time_left} min")
 		else:
 			st.info("No tasks could fit within the time limit.")
 
-		st.write("### Plan Explanation")
+		st.divider()
+
+		# ===== PLAN EXPLANATION =====
+		st.markdown("### 📝 Plan Explanation")
 		st.info(scheduler.last_explanation)
 
+		# ===== SKIPPED TASKS WARNING =====
 		if scheduler.last_skipped:
-			st.write("### Skipped Tasks")
+			st.markdown("### ⏭️ Tasks Not Scheduled (Time Limit)")
+			skipped_data = []
 			for task in scheduler.last_skipped:
-				st.write(f"- {task.title} ({task.duration_minutes} min) - {task.pet_name}")
+				skipped_data.append({
+					"Task": task.title,
+					"Pet": task.pet_name,
+					"Duration": f"{task.duration_minutes} min",
+					"Priority": task.priority.upper(),
+				})
+			st.dataframe(
+				import_pandas_and_create_df(skipped_data),
+				use_container_width=True,
+				hide_index=True,
+			)
+			st.caption("💡 Increase available time or mark some tasks complete to fit more tasks.")
+
+st.divider()
+
+# ===== TASK ANALYSIS TOOLS =====
+st.subheader("📊 Task Analysis")
+st.caption("Explore, filter, and sort all tasks to understand your pet care workload.")
+
+analysis_mode = st.radio(
+	"Select analysis view:",
+	["All Tasks (Sorted by Time)", "Tasks by Pet", "Tasks by Status"]
+)
+
+all_tasks = owner.get_all_tasks()
+
+if analysis_mode == "All Tasks (Sorted by Time)":
+	if all_tasks:
+		sorted_tasks = scheduler.sort_by_time(all_tasks)
+		st.markdown("##### ⏰ Tasks in Chronological Order")
+		
+		task_data = []
+		for task in sorted_tasks:
+			task_data.append({
+				"Time": task.preferred_time if task.preferred_time != "any" else "Flexible",
+				"Task": task.title,
+				"Pet": task.pet_name,
+				"Duration": f"{task.duration_minutes} min",
+				"Priority": task.priority.upper(),
+				"Status": "✓ Done" if task.completed else "○ Pending",
+			})
+		
+		st.dataframe(
+			import_pandas_and_create_df(task_data),
+			use_container_width=True,
+			hide_index=True,
+		)
+	else:
+		st.info("No tasks yet. Add tasks above.")
+
+elif analysis_mode == "Tasks by Pet":
+	if owner.pets:
+		selected_analysis_pet = st.selectbox(
+			"Choose a pet:",
+			[pet.name for pet in owner.pets],
+			key="pet_analysis"
+		)
+		
+		pet_tasks = scheduler.filter_by_pet(all_tasks, selected_analysis_pet)
+		
+		if pet_tasks:
+			st.markdown(f"##### Tasks for **{selected_analysis_pet}**")
+			
+			pet_task_data = []
+			for task in pet_tasks:
+				pet_task_data.append({
+					"Task": task.title,
+					"Time": task.preferred_time if task.preferred_time != "any" else "Flexible",
+					"Duration": f"{task.duration_minutes} min",
+					"Priority": task.priority.upper(),
+					"Status": "✓ Done" if task.completed else "○ Pending",
+				})
+			
+			st.dataframe(
+				import_pandas_and_create_df(pet_task_data),
+				use_container_width=True,
+				hide_index=True,
+			)
+			
+			col1, col2 = st.columns(2)
+			with col1:
+				st.metric("Total Tasks", len(pet_tasks))
+			with col2:
+				total_dur = sum(t.duration_minutes for t in pet_tasks)
+				st.metric("Total Duration", f"{total_dur} min")
+		else:
+			st.info(f"No tasks for {selected_analysis_pet} yet.")
+	else:
+		st.info("Add a pet first.")
+
+elif analysis_mode == "Tasks by Status":
+	col1, col2 = st.columns(2)
+	
+	with col1:
+		st.markdown("##### ○ Pending Tasks")
+		pending = scheduler.filter_by_status(all_tasks, completed=False)
+		if pending:
+			pending_data = []
+			for task in pending:
+				pending_data.append({
+					"Task": task.title,
+					"Pet": task.pet_name,
+					"Time": task.preferred_time if task.preferred_time != "any" else "Flexible",
+					"Duration": f"{task.duration_minutes} min",
+				})
+			st.dataframe(
+				import_pandas_and_create_df(pending_data),
+				use_container_width=True,
+				hide_index=True,
+			)
+			st.metric("Pending", len(pending))
+		else:
+			st.success("All tasks completed! 🎉")
+	
+	with col2:
+		st.markdown("##### ✓ Completed Tasks")
+		completed = scheduler.filter_by_status(all_tasks, completed=True)
+		if completed:
+			completed_data = []
+			for task in completed:
+				completed_data.append({
+					"Task": task.title,
+					"Pet": task.pet_name,
+					"Duration": f"{task.duration_minutes} min",
+				})
+			st.dataframe(
+				import_pandas_and_create_df(completed_data),
+				use_container_width=True,
+				hide_index=True,
+			)
+			st.metric("Completed", len(completed))
+		else:
+			st.info("No completed tasks yet.")
+
+
+# Helper function to create pandas DataFrame (required for st.dataframe)
+def import_pandas_and_create_df(data):
+	import pandas as pd
+	return pd.DataFrame(data)
+
