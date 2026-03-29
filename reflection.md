@@ -14,8 +14,9 @@ The UML diagram includes four main classes: Owner, Pet, Task, and Scheduler. The
 **b. Design changes**
 
 - Did your design change during implementation?
+Yes
 - If yes, describe at least one change and why you made it.
-
+One major change I made was adding the completed attribute and the mark_completed() method to the Task class. I did this so each task can track whether it’s done, which makes it easier for the Scheduler to generate an accurate daily plan and for the owner to see what still needs attention without manually checking each task.
 ---
 
 ## 2. Scheduling Logic and Tradeoffs
@@ -24,12 +25,12 @@ The UML diagram includes four main classes: Owner, Pet, Task, and Scheduler. The
 
 - What constraints does your scheduler consider (for example: time, priority, preferences)?
 - How did you decide which constraints mattered most?
-
+My scheduler considers several constraints when generating a daily plan. First, it looks at the owner’s available time as a hard limit so tasks don’t exceed what can realistically be done in a day. It also takes into account task priority (high, medium, low), task duration, and completion status, only scheduling tasks that haven’t been marked completed. Each task is associated with a specific pet, so the plan clearly organizes care by pet. I also include preferred times as hints for when a task should ideally happen, and frequency to handle one-time versus recurring tasks. I decided these constraints mattered most because they directly affect whether the plan is practical and helpful because owners need to know what must be done, when, and for which pet, without overbooking their day.
 **b. Tradeoffs**
 
 - Describe one tradeoff your scheduler makes.
 - Why is that tradeoff reasonable for this scenario?
-
+One tradeoff my scheduler makes is that it uses a greedy approach, picking the highest-priority tasks that fit one at a time until time runs out. That means sometimes a longer high-priority task might get skipped so I can fit in a couple of shorter ones instead. I think this tradeoff makes sense because it keeps the plan simple and easy to follow, makes sure essential care like feeding or meds comes first, and stops the owner from overcommitting. For daily planning, it’s better to have a schedule you can actually finish than trying to squeeze everything in perfectly.
 ---
 
 ## 3. AI Collaboration

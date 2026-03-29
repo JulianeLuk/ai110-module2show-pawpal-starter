@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any, Dict, List
+from datetime import datetime, timedelta
 
 
 @dataclass
@@ -24,9 +25,32 @@ class Task:
 		"""Verify task duration fits within available time."""
 		return self.duration_minutes > 0 and available_minutes >= self.duration_minutes
 
-	def mark_completed(self) -> None:
-		"""Mark the task as completed."""
+	def mark_completed(self) -> Task | None:
+		"""Mark the task as completed. If recurring, return a new task for next occurrence."""
 		self.completed = True
+		
+		# Handle recurring tasks
+		if self.frequency.lower() in {"daily", "weekly"}:
+			days_to_add = 1 if self.frequency.lower() == "daily" else 7
+			# Parse preferred_time if it's in HH:MM format
+			try:
+				next_date = datetime.now() + timedelta(days=days_to_add)
+				new_task = Task(
+					task_id=f"{self.task_id}_next",
+					title=self.title,
+					duration_minutes=self.duration_minutes,
+					priority=self.priority,
+					pet_name=self.pet_name,
+					frequency=self.frequency,
+					preferred_time=self.preferred_time,
+					completed=False,
+					notes=self.notes,
+				)
+				return new_task
+			except Exception:
+				return None
+		
+		return None
 
 
 @dataclass
@@ -235,3 +259,49 @@ class Scheduler:
 			lines.append("No tasks were skipped.")
 
 		return " ".join(lines)
+
+	def sort_by_time(self, tasks: List[Task]) -> List[Task]:
+		"""Sort tasks by their preferred_time in HH:MM format (earliest first)."""
+		def parse_time(task: Task) -> str:
+			if task.preferred_time == "any" or not task.preferred_time:
+				return "23:59"  # "any" times go to end
+			try:
+				datetime.strptime(task.preferred_time, "%H:%M")
+				return task.preferred_time
+			except ValueError:
+				return "23:59"
+		
+		return sorted(tasks, key=parse_time)
+
+	def filter_by_pet(self, tasks: List[Task], pet_name: str) -> List[Task]:
+		"""Filter tasks by pet name."""
+		return [task for task in tasks if task.pet_name.lower() == pet_name.lower()]
+
+	def filter_by_status(self, tasks: List[Task], completed: bool = False) -> List[Task]:
+		"""Filter tasks by completion status."""
+		return [task for task in tasks if task.completed == completed]
+
+	def detect_conflicts(self, tasks: List[Task]) -> List[str]:
+		"""Detect if multiple tasks are scheduled at the same time. Returns list of warning messages."""
+		warnings: List[str] = []
+		time_groups: Dict[str, List[Task]] = {}
+		
+		for task in tasks:
+			if task.preferred_time == "any" or not task.preferred_time:
+				continue
+			
+			if task.preferred_time not in time_groups:
+				time_groups[task.preferred_time] = []
+			time_groups[task.preferred_time].append(task)
+		
+		# Find conflicts
+		for time_slot, conflicting_tasks in time_groups.items():
+			if len(conflicting_tasks) > 1:
+				task_names = ", ".join(
+					f"{t.title} ({t.pet_name})" for t in conflicting_tasks
+				)
+				warnings.append(
+					f"⚠️  CONFLICT at {time_slot}: {task_names}"
+				)
+		
+		return warnings
