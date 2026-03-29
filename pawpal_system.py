@@ -26,7 +26,20 @@ class Task:
 		return self.duration_minutes > 0 and available_minutes >= self.duration_minutes
 
 	def mark_completed(self) -> Task | None:
-		"""Mark the task as completed. If recurring, return a new task for next occurrence."""
+		"""Mark the task as completed and auto-generate next occurrence if recurring.
+		
+		For recurring tasks (daily or weekly), this method automatically creates a new Task
+		instance with the same properties but a future due date. Uses Python's timedelta
+		to calculate: daily tasks → today+1, weekly tasks → today+7.
+		
+		Returns:
+			Task or None: A new Task object if this task is recurring, None otherwise.
+		
+		Example:
+			task = Task(task_id="T1", title="Feed", duration_minutes=15, 
+			           priority="high", frequency="daily")
+			next_task = task.mark_completed()  # Creates task for tomorrow
+		"""
 		self.completed = True
 		
 		# Handle recurring tasks
@@ -261,8 +274,78 @@ class Scheduler:
 		return " ".join(lines)
 
 	def sort_by_time(self, tasks: List[Task]) -> List[Task]:
-		"""Sort tasks by their preferred_time in HH:MM format (earliest first)."""
-		def parse_time(task: Task) -> str:
+		"""Sort tasks by preferred_time in ascending chronological order.
+		
+		Orders tasks by their preferred_time attribute in HH:MM format, placing tasks
+		with flexible timing (preferred_time="any") at the end. Validates that times
+		are in valid HH:MM format; invalid times are treated as "23:59" (end of day).
+		
+		Args:
+			tasks: List of Task objects to sort by time.
+		
+		Returns:
+			List[Task]: Tasks sorted chronologically by preferred_time (earliest first).
+		
+		Example:
+			tasks = [Task(.to show only those assigned to a specific pet.
+		
+		Performs case-insensitive filtering of tasks by pet_name. Useful for viewing
+		all tasks for a single pet or generating pet-specific schedules.
+		
+		Args:
+			tasks: List of Task objects to filter.
+			pet_name: Name of the pet (case-insensitive matching).
+		
+		Returns:
+			List[Task]: Tasks belonging to the specified pet (empty list if none match).
+		
+		Example:
+			all_tasks = [Task(..., pet_name="Mochi"), Task(..., pet_name="Luna")]
+			mochi_only = scheduler.filter_by_pet(all_tasks, "Mochi")
+			# Result: Only the Mochi task is returned
+		d_time="14:00"), Task(..., preferred_time="08:00")]
+			sorted = scheduler.sort_by_time(tasks)
+			# Result: 08:00 task first, then 14:00 task
+		"""
+		def parse_time(tasktheir completion status.
+		
+		Separates tasks into completed or incomplete lists. Useful for displaying
+		today's remaining work or reviewing completed tasks.
+		scheduling conflicts where multiple tasks occur at the same time.
+		
+		Identifies when two or more tasks share the same preferred_time (HH:MM).
+		Returns warning messages instead of raising exceptions, allowing graceful
+		handling of scheduling conflicts. Tasks with preferred_time="any" are ignored.
+		
+		This is a lightweight conflict detection strategy—it reports issues but doesn't
+		attempt to resolve them, leaving that decision to the user.
+		
+		Args:
+			tasks: List of Task objects to check for scheduling conflicts.
+		
+		Returns:
+			List[str]: Warning messages describing each detected conflict. Empty list
+			          if no conflicts found.
+		
+		Example:
+			tasks = [Task(..., pet_name="Buddy", preferred_time="10:00"),
+			         Task(..., pet_name="Max", preferred_time="10:00")]
+			warnings = scheduler.detect_conflicts(tasks)
+			# Result: ["⚠️  CONFLICT at 10:00: Dog Training (Buddy), Cat Play (Max)"]
+		
+		Args:
+			tasks: List of Task objects to filter.
+			completed: If True, returns only completed tasks; if False (default), 
+			          returns only incomplete tasks.
+		
+		Returns:
+			List[Task]: Tasks matching the specified completion status.
+		
+		Example:
+			all_tasks = [Task(..., completed=True), Task(..., completed=False)]
+			incomplete = scheduler.filter_by_status(all_tasks, completed=False)
+			# Result: Only incomplete (remaining) tasks are returned
+		
 			if task.preferred_time == "any" or not task.preferred_time:
 				return "23:59"  # "any" times go to end
 			try:
